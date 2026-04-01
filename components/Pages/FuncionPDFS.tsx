@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { PDFDocument } from "pdf-lib";
+// import {Loadings} from "../utils/Loading";
+
 import {
   DndContext,
   closestCenter
@@ -19,7 +21,7 @@ type PageType = {
   id: string | number;
   url: string;
   pageNumber: number;
-  originalIndex: number; 
+  originalIndex: number;
 };
 
 export default function FunctionPDFS() {
@@ -28,19 +30,19 @@ export default function FunctionPDFS() {
 
   // 
   const handleDragEnd = (event: any) => {
-  const { active, over } = event;
+    const { active, over } = event;
 
-  if (!over) return;
+    if (!over) return;
 
-  if (active.id !== over.id) {
-    setPages((items) => {
-      const oldIndex = items.findIndex(i => i.id === active.id);
-      const newIndex = items.findIndex(i => i.id === over.id);
+    if (active.id !== over.id) {
+      setPages((items) => {
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over.id);
 
-      return arrayMove(items, oldIndex, newIndex);
-    });
-  }
-};
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   //
   const handleLoadPDF = async (file: File) => {
@@ -48,7 +50,7 @@ export default function FunctionPDFS() {
     pages.forEach(p => URL.revokeObjectURL(p.url));
 
     const arrayBuffer = await file.arrayBuffer();
-    setOriginalPdfBytes(arrayBuffer); 
+    setOriginalPdfBytes(arrayBuffer);
 
     const pdfDoc = await PDFDocument.load(arrayBuffer);
     const totalPages = pdfDoc.getPageCount();
@@ -73,14 +75,14 @@ export default function FunctionPDFS() {
         id: i + 1,
         url,
         pageNumber: i + 1,
-        originalIndex: i 
+        originalIndex: i
       });
     }
 
     setPages(newPages);
   };
 
-  // 🔹 Descargar PDF ordenado
+  // 
   const handleDownloadPDF = async () => {
     if (!originalPdfBytes) return;
 
@@ -113,7 +115,7 @@ export default function FunctionPDFS() {
   return (
     <div className="p-4">
 
-      
+
       <label className="mb-4 inline-block px-4 py-2 bg-green-600 text-white rounded cursor-pointer">
         Subir PDF
         <input
@@ -127,7 +129,7 @@ export default function FunctionPDFS() {
         />
       </label>
 
-     
+
       {pages.length > 0 && (
         <button
           onClick={handleDownloadPDF}
@@ -135,10 +137,23 @@ export default function FunctionPDFS() {
         >
           Descargar PDF
         </button>
+
+      )}
+
+      {pages.length > 0 && (
+        <button onClick={() => {
+          setPages([]);
+          setOriginalPdfBytes(null);
+
+        }}
+          className="ml-4 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded">
+          Limpiar
+        </button>
       )}
 
 
-  
+
+
       <DndContext
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
@@ -153,12 +168,12 @@ export default function FunctionPDFS() {
                 key={pdf.id}
                 id={pdf.id}
                 pdf={pdf}
-                position={index +1}
-                
+                position={index + 1}
+
               />
-              
+
             ))}
-            
+
           </div>
         </SortableContext>
       </DndContext>

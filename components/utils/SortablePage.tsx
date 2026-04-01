@@ -26,7 +26,7 @@ export const SortablePage = ({
             {...listeners}
             className="bg-white p-2 rounded shadow cursor-grab active:cursor-grabbing"
         >
-            <iframe src={pdf.url} className="w-full h-40" />
+            <iframe src={pdf.url} className="w-full h-100" />
 
             <p className="text-center text-sm mt-2 font-semibold text-gray-800">
                 Página {pdf.pageNumber}
