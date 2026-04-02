@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PDFDocument } from "pdf-lib";
-// import {Loadings} from "../utils/Loading";
+
+import { Loading } from "../utils/Loading";
 
 import {
   DndContext,
@@ -22,11 +23,26 @@ type PageType = {
   url: string;
   pageNumber: number;
   originalIndex: number;
+  sourceBuffer: ArrayBuffer;
+
 };
 
 export default function FunctionPDFS() {
   const [pages, setPages] = useState<PageType[]>([]);
   const [originalPdfBytes, setOriginalPdfBytes] = useState<ArrayBuffer | null>(null);
+  const [pdfFiles, setPdfFiles] = useState<ArrayBuffer[]>([]);
+
+  const pdfBuffersRef = useRef<Map<string | number, ArrayBuffer>>(new Map());
+
+  //cargando
+  const [loading, setLoading] = useState(false);
+
+  // para cuando le doy click
+  const [activeUpload, setActiveUpload] = useState(false);
+
+  //contar cuantas hojas hay
+  const totalPages = pages.length;
+
 
   // 
   const handleDragEnd = (event: any) => {
@@ -44,79 +60,161 @@ export default function FunctionPDFS() {
     }
   };
 
-  //
+  // este es para el primer grupo
   const handleLoadPDF = async (file: File) => {
-    // 
-    pages.forEach(p => URL.revokeObjectURL(p.url));
 
-    const arrayBuffer = await file.arrayBuffer();
-    setOriginalPdfBytes(arrayBuffer);
+    setLoading(true);
 
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    const totalPages = pdfDoc.getPageCount();
+    try {
+      pages.forEach(p => URL.revokeObjectURL(p.url));
 
-    const newPages: PageType[] = [];
+      const arrayBuffer = await file.arrayBuffer();
+      setOriginalPdfBytes(arrayBuffer);
 
-    for (let i = 0; i < totalPages; i++) {
-      const newPdf = await PDFDocument.create();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const totalPages = pdfDoc.getPageCount();
 
-      const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
-      newPdf.addPage(copiedPage);
+      const newPages: PageType[] = [];
 
-      const pdfBytes = await newPdf.save();
+      for (let i = 0; i < totalPages; i++) {
+        const newPdf = await PDFDocument.create();
 
-      const blob = new Blob([new Uint8Array(pdfBytes)], {
-        type: "application/pdf"
-      });
+        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
+        newPdf.addPage(copiedPage);
 
-      const url = URL.createObjectURL(blob);
+        const pdfBytes = await newPdf.save();
 
-      newPages.push({
-        id: i + 1,
-        url,
-        pageNumber: i + 1,
-        originalIndex: i
-      });
+        const blob = new Blob([new Uint8Array(pdfBytes)], {
+          type: "application/pdf"
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        newPages.push({
+          id: i + 1,
+          url,
+          pageNumber: i + 1,
+          originalIndex: i,
+          sourceBuffer: arrayBuffer
+        });
+      }
+
+      setPages(newPages);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
+    // 
 
-    setPages(newPages);
+  };
+
+  //para poder agregar mas pdfs
+  const handleAddMorePDF = async (file: File) => {
+    setLoading(true);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const totalPages = pdfDoc.getPageCount();
+
+      const newPages: PageType[] = [];
+
+      for (let i = 0; i < totalPages; i++) {
+        const newPdf = await PDFDocument.create();
+
+        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
+        newPdf.addPage(copiedPage);
+
+        const pdfBytes = await newPdf.save();
+
+        const blob = new Blob([new Uint8Array(pdfBytes)], {
+          type: "application/pdf"
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        newPages.push({
+          id: Date.now() + i,
+          url,
+          pageNumber: pages.length + i + 1,
+          originalIndex: i,
+          sourceBuffer: arrayBuffer
+        });
+      }
+
+
+      setPages(prev => [...prev, ...newPages]);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 
   const handleDownloadPDF = async () => {
-    if (!originalPdfBytes) return;
 
-    const pdfDoc = await PDFDocument.load(originalPdfBytes);
-    const newPdf = await PDFDocument.create();
+    setLoading(true);
 
-    for (const page of pages) {
-      const [copiedPage] = await newPdf.copyPages(pdfDoc, [
-        page.originalIndex
-      ]);
-      newPdf.addPage(copiedPage);
+    try {
+      if (pages.length === 0) return;
+
+      const newPdf = await PDFDocument.create();
+
+      for (const page of pages) {
+        // Carga el PDF fuente de esa página específica
+        const sourcePdf = await PDFDocument.load(page.sourceBuffer);
+        const [copiedPage] = await newPdf.copyPages(sourcePdf, [page.originalIndex]);
+        newPdf.addPage(copiedPage);
+      }
+
+      const pdfBytes = await newPdf.save();
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "PDF_ordenado.pdf";
+      a.click();
+
+      URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
 
-    const pdfBytes = await newPdf.save();
 
-    const blob = new Blob([new Uint8Array(pdfBytes)], {
-      type: "application/pdf"
+  };
+
+  //Eliminar documentos
+  const handleDeletePage = (id: number | string) => {
+    setPages((prev) => {
+      const pageToDelete = prev.find(p => p.id === id);
+
+
+      if (pageToDelete) {
+        URL.revokeObjectURL(pageToDelete.url);
+      }
+
+
+      return prev.filter(p => p.id !== id);
     });
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "PDF_ordenado.pdf";
-    a.click();
-
-    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="p-4">
 
 
-      <label className="mb-4 inline-block px-4 py-2 bg-green-600 text-white rounded cursor-pointer">
+      <label onClick={() => setActiveUpload(true)}
+        className={`mb-4 inline-block px-4 py-2 rounded cursor-pointer text-white
+    ${loading ? "bg-green-600 opacity-50 cursor-not-allowed" : "bg-green-600"}
+  `}>
         Subir PDF
         <input
           type="file"
@@ -130,7 +228,33 @@ export default function FunctionPDFS() {
       </label>
 
 
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Loading />
+        </div>
+      )}
       {pages.length > 0 && (
+
+        <label className="ml-4 px-4 py-2 bg-yellow-600 text-white rounded cursor-pointer">
+          Agregar PDF
+          <input
+            type="file"
+            accept="application/pdf"
+            multiple
+            onChange={(e) => {
+              const files = e.target.files;
+              if (!files) return;
+
+              Array.from(files).forEach(file => handleAddMorePDF(file)); //PERMITIREMOS MULTIPLES PDFS
+            }}
+            className="hidden"
+          />
+        </label>
+
+      )}
+
+      {pages.length > 0 && (
+
         <button
           onClick={handleDownloadPDF}
           className="ml-4 px-4 py-2 bg-blue-600 text-white rounded"
@@ -139,6 +263,7 @@ export default function FunctionPDFS() {
         </button>
 
       )}
+
 
       {pages.length > 0 && (
         <button onClick={() => {
@@ -150,6 +275,12 @@ export default function FunctionPDFS() {
           Limpiar
         </button>
       )}
+
+      <p>Total de páginas: {pages.length || "0"}</p>
+
+
+
+
 
 
 
@@ -164,13 +295,28 @@ export default function FunctionPDFS() {
         >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-4">
             {pages.map((pdf, index) => (
-              <SortablePage
-                key={pdf.id}
-                id={pdf.id}
-                pdf={pdf}
-                position={index + 1}
+              <div key={pdf.id} className="flex flex-col items-center">
+                <SortablePage
+                  key={pdf.id}
+                  id={pdf.id}
+                  pdf={pdf}
+                  position={index + 1}
+                  onDelete={handleDeletePage}
 
-              />
+                />
+                <button
+                  onClick={() => {
+                    handleDeletePage(pdf.id)
+                    console.log("aqui bro")
+                  }}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Eliminar
+                </button>
+
+              </div>
+
+
 
             ))}
 

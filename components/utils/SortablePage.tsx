@@ -2,13 +2,15 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 export const SortablePage = ({
-  id,
-  pdf,
-  position
+    id,
+    pdf,
+    position,
+    onDelete
 }: {
-  id: string | number;
-  pdf: { url: string; pageNumber: number };
-  position: number;
+    id: string | number;
+    pdf: { url: string; pageNumber: number };
+    position: number;
+    onDelete: (id: string | number) => void;
 }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
         useSortable({ id });
@@ -35,6 +37,8 @@ export const SortablePage = ({
             <p className="text-center text-xs text-gray-500">
                 Posición {position}
             </p>
+            
+           
         </div>
     );
 };
