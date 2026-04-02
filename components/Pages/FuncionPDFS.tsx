@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PDFDocument } from "pdf-lib";
 
 import { Loading } from "../utils/Loading";
@@ -41,7 +41,23 @@ export default function FunctionPDFS() {
   const [activeUpload, setActiveUpload] = useState(false);
 
   //contar cuantas hojas hay
-  const totalPages = pages.length;
+  const totalPagesssss = pages.length;
+
+  const [mounted, setMounted] = useState(false);
+
+ useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      pages.forEach(p => URL.revokeObjectURL(p.url));
+    };
+  }, [pages]);
+
+  if (!mounted) return null;
+
+
 
 
   // 
@@ -229,8 +245,24 @@ export default function FunctionPDFS() {
 
 
       {loading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Loading />
+        <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col items-center gap-5 min-w-[220px]">
+
+
+            <Loading />
+            <p className="text-[13px] text-neutral-500">
+              Cargando...
+              Esto puede tomar un momento
+            </p>
+
+            <button
+              onClick={() => setLoading(false)}
+              className="w-full py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+            >
+              Cancelar
+            </button>
+
+          </div>
         </div>
       )}
       {pages.length > 0 && (
@@ -276,7 +308,7 @@ export default function FunctionPDFS() {
         </button>
       )}
 
-      <p>Total de páginas: {pages.length || "0"}</p>
+      <p>Total de páginas: {pages.length}</p>
 
 
 
