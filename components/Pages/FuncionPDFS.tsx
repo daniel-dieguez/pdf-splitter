@@ -40,22 +40,9 @@ export default function FunctionPDFS() {
   // para cuando le doy click
   const [activeUpload, setActiveUpload] = useState(false);
 
-  //contar cuantas hojas hay
-  const totalPagesssss = pages.length;
+  
 
-  const [mounted, setMounted] = useState(false);
-
- useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      pages.forEach(p => URL.revokeObjectURL(p.url));
-    };
-  }, [pages]);
-
-  if (!mounted) return null;
+  
 
 
 
