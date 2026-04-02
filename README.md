@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📄 PDF Splitter Pro
 
-## Getting Started
+Aplicación web moderna para **dividir, reorganizar y descargar archivos PDF** de forma interactiva.
+Permite manipular páginas fácilmente mediante **Drag & Drop**, ofreciendo una experiencia fluida, rápida y profesional.
 
-First, run the development server:
+---
+
+## 🚀 Características
+
+* 📂 Subir archivos PDF
+* 📄 Separación automática por páginas
+* 🧩 Reordenar páginas con Drag & Drop
+* ➕ Agregar múltiples PDFs
+* ❌ Eliminar páginas individuales
+* 📥 Descargar PDF final ordenado
+* ⚡ Interfaz rápida y responsiva
+* 🧠 Optimización de memoria usando `Blob URLs`
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+* ⚛️ React.js (Next.js)
+* 🟦 TypeScript
+* 📦 pdf-lib
+* 🎯 @dnd-kit (Drag & Drop)
+* 🎨 Tailwind CSS
+
+---
+
+## 📸 Preview
+
+*Aquí puedes agregar screenshots de tu app*
+
+```
+![preview](./public/preview.png)
+```
+
+---
+
+## ⚙️ Instalación
+
+Clona el repositorio:
+
+```bash
+git clone https://github.com/tu-usuario/tu-repo.git
+```
+
+Entra al proyecto:
+
+```bash
+cd tu-repo
+```
+
+Instala dependencias:
+
+```bash
+npm install
+```
+
+Ejecuta el proyecto:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Estructura del proyecto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+│── components/
+│   └── SortablePage.tsx
+│
+│── app/
+│   └── FunctionPDFS.tsx
+│
+│── utils/
+│   └── Loading.tsx
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🧩 Funcionalidades principales
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🔹 División de PDF
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Cada archivo se divide en páginas individuales usando `pdf-lib`.
 
-## Deploy on Vercel
+### 🔹 Drag & Drop
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Reordenamiento dinámico con `@dnd-kit`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 🔹 Manejo de memoria
+
+Uso de:
+
+```js
+URL.createObjectURL()
+URL.revokeObjectURL()
+```
+
+para evitar fugas de memoria.
+
+---
+
+## ⚠️ Consideraciones técnicas
+
+* Los `Blob URLs` se liberan correctamente para evitar memory leaks.
+* Se evita SSR para componentes que usan APIs del navegador.
+* Optimizado para evitar errores de hydration en Next.js.
+
+---
+
+## 📌 Mejoras futuras
+
+* 🖼️ Preview en canvas (react-pdf)
+* 📱 Mejor experiencia móvil
+* ☁️ Subida y almacenamiento en la nube
+* 🔐 Autenticación de usuarios
+* 📊 Historial de PDFs procesados
+
+---
+
+## 👨‍💻 Autor
+
+**Daniel Diéguez**
+📧 [danguez2001@gmail.com](mailto:danguez2001@gmail.com)
+
+---
+
+## ⭐ Contribuciones
+
+¡Las contribuciones son bienvenidas!
+Puedes hacer un fork del proyecto y enviar un pull request.
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT.
